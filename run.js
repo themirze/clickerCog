@@ -1,7 +1,9 @@
 javascript:(function(){
   let count = 0;
   let secondsElapsed = 0;
-  let interval;
+  let interval = null;
+  let timerInterval = null;
+  let isRunning = true;
 
   const assignee = document.querySelector('[debug-id="assignee"]');
   if (!assignee) {
@@ -34,40 +36,56 @@ javascript:(function(){
     timeSpan.textContent = `Time: ${formatTime(secondsElapsed)}`;
   }
 
-  const stopBtn = document.createElement('button');
-  stopBtn.textContent = 'Stop';
-  stopBtn.style.padding = '4px 8px';
-  stopBtn.style.backgroundColor = '#d9534f';
-  stopBtn.style.color = 'white';
-  stopBtn.style.border = 'none';
-  stopBtn.style.borderRadius = '4px';
-  stopBtn.style.cursor = 'pointer';
+  function startClicking() {
+    if (interval || timerInterval) return;
+    interval = setInterval(() => {
+      const btn = document.querySelector('material-icon[icon="refresh"]');
+      if (btn) {
+        btn.click();
+        count++;
+        updateDisplay();
+      }
+    }, 1000);
+    timerInterval = setInterval(() => {
+      secondsElapsed++;
+      updateDisplay();
+    }, 1000);
+  }
 
-  stopBtn.onclick = () => {
+  function stopClicking() {
     clearInterval(interval);
     clearInterval(timerInterval);
-    stopBtn.textContent = 'Stopped';
-    stopBtn.style.backgroundColor = 'gray';
+    interval = null;
+    timerInterval = null;
+  }
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.textContent = 'Stop';
+  toggleBtn.style.padding = '4px 8px';
+  toggleBtn.style.backgroundColor = '#d9534f';
+  toggleBtn.style.color = 'white';
+  toggleBtn.style.border = 'none';
+  toggleBtn.style.borderRadius = '4px';
+  toggleBtn.style.cursor = 'pointer';
+
+  toggleBtn.onclick = () => {
+    if (isRunning) {
+      stopClicking();
+      toggleBtn.textContent = 'Start';
+      toggleBtn.style.backgroundColor = '#5cb85c';
+    } else {
+      startClicking();
+      toggleBtn.textContent = 'Stop';
+      toggleBtn.style.backgroundColor = '#d9534f';
+    }
+    isRunning = !isRunning;
   };
 
   wrapper.appendChild(counterSpan);
   wrapper.appendChild(timeSpan);
-  wrapper.appendChild(stopBtn);
+  wrapper.appendChild(toggleBtn);
   assignee.parentNode.insertBefore(wrapper, assignee.nextSibling);
 
-  interval = setInterval(() => {
-    const btn = document.querySelector('material-icon[icon="refresh"]');
-    if (btn) {
-      btn.click();
-      count++;
-      updateDisplay();
-    }
-  }, 1000);
-
-  const timerInterval = setInterval(() => {
-    secondsElapsed++;
-    updateDisplay();
-  }, 1000);
-
   updateDisplay();
+  startClicking();
 })();
